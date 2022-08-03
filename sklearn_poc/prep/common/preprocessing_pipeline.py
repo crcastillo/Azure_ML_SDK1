@@ -10,7 +10,7 @@ from sklearn.compose import (
 )
 from sklearn.feature_selection import VarianceThreshold
 from sklearn.impute import SimpleImputer
-from preprocessing_custom_transformers import (
+from common.preprocessing_custom_transformers import (
     TypeConversion_Manual
     , FindCorrelation
     , CategoricalImputer

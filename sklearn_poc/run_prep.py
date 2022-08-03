@@ -9,7 +9,7 @@ from azureml.core.compute import ComputeInstance
 # from azureml.core.conda_dependencies import CondaDependencies
 
 
-ws = Workspace.from_config(path='./config.json') 
+ws = Workspace.from_config() 
 exp = Experiment(workspace=ws, name='my_exp')
 
 # Failed with image build and pip subprocess "could not find a version that satisfies the requirement azureml-samples==0+unknown (from -r /azureml-environment-setup/condaenv.um2xx4eg.requirements.txt"

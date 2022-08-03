@@ -80,18 +80,18 @@ if __name__ == "__main__":
     # Transform X_Test
     X_Test_trans = PreProcessing_Pipeline.transform(X=X_Test)
 
-    # Create list of objects for pkl
-    pkl_list = [
-        X_Train_trans
-        , Y_Train
-        , X_Test_trans
-        , Y_Test
-        , PreProcessing_Pipeline
-    ]
+    # Create dict of objects for pkl
+    pkl_dict = {
+        'X_Train_trans': X_Train_trans
+        , 'Y_Train': Y_Train
+        , 'X_Test_trans': X_Test_trans
+        , 'Y_Test': Y_Test
+        , 'PreProcessing_Pipeline': PreProcessing_Pipeline
+    }
 
     # Iteratively dump objects into ./outputs
-    for i in pkl_list:
+    for i in pkl_dict:
         joblib.dump(
-            value=i
+            value=pkl_dict[i]
             , filename='./outputs/' + str(i) + '.pkl'
         )
