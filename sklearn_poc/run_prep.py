@@ -6,11 +6,14 @@ from azureml.core import (
     , Dataset
     )
 from azureml.core.compute import ComputeInstance
+from azureml.core import Model
+
 # from azureml.core.conda_dependencies import CondaDependencies
 
+import os
 
 ws = Workspace.from_config() 
-exp = Experiment(workspace=ws, name='my_exp')
+exp = Experiment(workspace=ws, name='my_sklearn_exp')
 
 # Failed with image build and pip subprocess "could not find a version that satisfies the requirement azureml-samples==0+unknown (from -r /azureml-environment-setup/condaenv.um2xx4eg.requirements.txt"
 # env = Environment.from_existing_conda_environment(    
@@ -47,3 +50,25 @@ config = ScriptRunConfig(
     )
 run = exp.submit(config)
 run.wait_for_completion(show_output=True)
+
+# Create a model folder in the current directory
+os.makedirs('./prep/outputs', exist_ok=True)
+
+# Download the model from run history
+run.download_file(
+    name='outputs/PreProcessing_Pipeline.pkl'
+    , output_file_path='./prep/outputs/PreProcessing_Pipeline.pkl'
+)
+
+# Register the PreProcessing Pipeline as model
+run.register_model( 
+    model_name='sklearn_preprocessing'
+    , model_path='outputs/PreProcessing_Pipeline.pkl' # run outputs path
+    , description='A Pre-Processing Pipeline for sklearn models based on 1987 NICP Survey'
+    , tags={
+        'data-format': 'CSV'
+        , 'dataset': '1987_NICP_Survey'
+        }
+    , model_framework=Model.Framework.SCIKITLEARN
+    , model_framework_version='0.24.2'
+    )

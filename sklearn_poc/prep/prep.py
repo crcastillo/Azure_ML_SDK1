@@ -1,6 +1,8 @@
-from azureml.core import Run, Dataset, Workspace
+from atexit import register
+from azureml.core import Run, Dataset
 from sklearn.model_selection import train_test_split
 
+import os
 import argparse
 import joblib
 
@@ -95,3 +97,4 @@ if __name__ == "__main__":
             value=pkl_dict[i]
             , filename='./outputs/' + str(i) + '.pkl'
         )
+    
