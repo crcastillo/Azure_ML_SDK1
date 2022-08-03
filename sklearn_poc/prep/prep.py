@@ -4,7 +4,7 @@ from sklearn.model_selection import train_test_split
 import argparse
 import joblib
 
-from assets import preprocessing_pipeline
+from common import preprocessing_pipeline
 
 if __name__ == "__main__":
     # Ensuring logging is possible
@@ -80,27 +80,18 @@ if __name__ == "__main__":
     # Transform X_Test
     X_Test_trans = PreProcessing_Pipeline.transform(X=X_Test)
 
-    # Create pkl files for transformed Test/Train
-    # Can successfully create outputs/ objects
-    joblib.dump(
-        value=X_Train_trans
-        , filename="outputs/X_Train_trans.pkl"
-        )
-    joblib.dump(
-        value=Y_Train
-        , filename="outputs/Y_Train.pkl"
-        )
-    joblib.dump(
-        value=X_Test_trans
-        , filename="outputs/X_Test_trans.pkl"
-        )
-    joblib.dump(
-        value=Y_Test
-        , filename="outputs/Y_Test.pkl"
-        )
+    # Create list of objects for pkl
+    pkl_list = [
+        X_Train_trans
+        , Y_Train
+        , X_Test_trans
+        , Y_Test
+        , PreProcessing_Pipeline
+    ]
 
-    # Create pkl for trained PreProcessing_Pipeline
-    joblib.dump(
-        value=PreProcessing_Pipeline
-        , filename="outputs/PreProcessing_Pipeline.pkl"
-    )
+    # Iteratively dump objects into ./outputs
+    for i in pkl_list:
+        joblib.dump(
+            value=i
+            , filename='./outputs/' + str(i) + '.pkl'
+        )

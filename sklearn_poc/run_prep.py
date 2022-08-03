@@ -38,8 +38,8 @@ NICP_Survey = Dataset.get_by_name(
 
 instance = ComputeInstance(workspace=ws, name='crcastillo841')
 config = ScriptRunConfig(
-    source_directory='.'
-    , script='./prep/prep.py'
+    source_directory='./prep'
+    , script='prep.py'
     # , environment=curated_clone
     , arguments=['--input-data', NICP_Survey.as_named_input('NICP_Survey_Raw')]
     , environment=env
