@@ -12,7 +12,10 @@ from azureml.core import Model
 
 import os
 
+# Construct workspace
 ws = Workspace.from_config() 
+
+# Define experiment
 exp = Experiment(workspace=ws, name='my_sklearn_exp')
 
 # Failed with image build and pip subprocess "could not find a version that satisfies the requirement azureml-samples==0+unknown (from -r /azureml-environment-setup/condaenv.um2xx4eg.requirements.txt"
@@ -39,26 +42,48 @@ NICP_Survey = Dataset.get_by_name(
         , name="1987_NICP_Survey"
     )
 
+# Define variables
+random_seed = 123
+test_proportion = 0.2
+target = 'ContraceptiveMethod'
+
+# Set the compute instance
 instance = ComputeInstance(workspace=ws, name='crcastillo841')
+
+# Structure the ScriptRunConfig
 config = ScriptRunConfig(
     source_directory='./prep'
     , script='prep.py'
     # , environment=curated_clone
-    , arguments=['--input-data', NICP_Survey.as_named_input('NICP_Survey_Raw')]
+    , arguments=[
+        '--input_data', NICP_Survey.as_named_input('NICP_Survey_Raw')
+        , '--random_seed', random_seed
+        , '--test_proportion', test_proportion
+        , '--target', target
+        ]
     , environment=env
     , compute_target=instance
     )
+
+# Submit run and wait_for_completion
 run = exp.submit(config)
 run.wait_for_completion(show_output=True)
 
 # Create a model folder in the current directory
 os.makedirs('./prep/outputs', exist_ok=True)
 
-# Download the model from run history
+# Download the PreProcessing model from run history
 run.download_file(
     name='outputs/PreProcessing_Pipeline.pkl'
     , output_file_path='./prep/outputs/PreProcessing_Pipeline.pkl'
 )
+
+# Download train, test to ./data
+for i in ['train', 'test']:
+    run.download_file(
+        name='outputs/' + str(i) + '.txt'
+        , output_file_path='./data/' + str(i) + '.txt'
+    )
 
 # Register the PreProcessing Pipeline as model
 run.register_model( 

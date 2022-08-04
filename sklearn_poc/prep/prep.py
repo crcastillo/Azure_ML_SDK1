@@ -1,8 +1,7 @@
-from atexit import register
 from azureml.core import Run, Dataset
 from sklearn.model_selection import train_test_split
+import numpy as np
 
-import os
 import argparse
 import joblib
 
@@ -10,16 +9,15 @@ from common import preprocessing_pipeline
 
 if __name__ == "__main__":
     # Ensuring logging is possible
-    run = Run.get_context()
-
-    # Set variables
-    random_seed = 123
-    test_proportion = 0.2
-    target = 'ContraceptiveMethod'
+    run = Run.get_context()    
 
     # Instantiate ArgumentParser
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input-data", type=str)
+    parser.add_argument("--input_data", type=str)
+    parser.add_argument("--random_seed", type=int)
+    parser.add_argument("--test_proportion", type=float)
+    parser.add_argument("--target", type=str)
+
     args = parser.parse_args()
 
     # Define workspace from run.experiment
@@ -36,10 +34,10 @@ if __name__ == "__main__":
 
     # Split Train_Data into Train/Valid
     X_Train, X_Test, Y_Train, Y_Test = train_test_split(
-        raw_df.loc[:, ~raw_df.columns.isin([target])]
-        , raw_df.loc[: , raw_df.columns.isin([target])]
-        , random_state=random_seed
-        , test_size=test_proportion
+        raw_df.loc[:, ~raw_df.columns.isin([args.target])]
+        , raw_df.loc[: , raw_df.columns.isin([args.target])]
+        , random_state=args.random_seed
+        , test_size=args.test_proportion
     )
 
     # Fix Y_Train and Y_Test
@@ -82,19 +80,25 @@ if __name__ == "__main__":
     # Transform X_Test
     X_Test_trans = PreProcessing_Pipeline.transform(X=X_Test)
 
-    # Create dict of objects for pkl
-    pkl_dict = {
-        'X_Train_trans': X_Train_trans
-        , 'Y_Train': Y_Train
-        , 'X_Test_trans': X_Test_trans
-        , 'Y_Test': Y_Test
-        , 'PreProcessing_Pipeline': PreProcessing_Pipeline
-    }
+    # Column stack target and features
+    train = np.column_stack((Y_Train, X_Train_trans))
+    test = np.column_stack((Y_Test, X_Test_trans))
 
-    # Iteratively dump objects into ./outputs
-    for i in pkl_dict:
-        joblib.dump(
-            value=pkl_dict[i]
-            , filename='./outputs/' + str(i) + '.pkl'
-        )
+    # Save train/test as numpy arrays
+    np.savetxt(
+        fname='./outputs/train.txt'
+        , X=train
+        , fmt="%f"
+    )
+    np.savetxt(
+        fname='./outputs/test.txt'
+        , X=test
+        , fmt="%f"
+    )
+
+    # Dump PreProcessing_Pipeline into ./outputs
+    joblib.dump(
+        value=PreProcessing_Pipeline
+        , filename='./outputs/PreProcessing_Pipeline.pkl'
+    )
     
