@@ -42,12 +42,20 @@ if __name__ == "__main__":
 
     # Fix Y_Train and Y_Test
     Y_Train.replace(
-        to_replace={3:1}
+        to_replace={
+            1:0 # No use of contraceptives
+            ,2:1 # Short-Term
+            ,3:1 # Long-Term
+        }
         , inplace = True
     )
 
     Y_Test.replace(
-        to_replace={3:1}
+        to_replace={
+            1:0 
+            ,2:1
+            ,3:1
+        }
         , inplace = True
     )
 

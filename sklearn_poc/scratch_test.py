@@ -44,3 +44,13 @@ train = np.loadtxt(
 np.shape(train)
 # %%
 
+X_Train = train[:, 1:]
+Y_Train = train[:,0]
+# %%
+
+np.shape(X_Train)
+# %%
+Y_Train[:5]
+# %%
+np.unique(Y_Train)
+# %%
