@@ -52,96 +52,44 @@ train = np.loadtxt(
     , dtype=float
 )
 
-'''
-LEFT OFF HERE
-'''
-
 # Separate into X_Train, Y_Train
-# X_Train = train[:, 0]
-# Y_train = [:, 1:]
-
-# Instantiate a record of the cv scores
-best_score = None
-
-# Iterate through search_grid rows
-for i in search_grid.index:
-    # Start logging
-    run = experiment.start_logging()
-
-    # Capture hyperparamters
-    # run.log('C', search_grid['C'].loc[i])
-    run.log('l1_ratio', search_grid['l1_ratio'].loc[i])
-
-    # Instantiate model with hyperparameters
-    model = LogisticRegression(
-        penalty='elasticnet' # Allows full range of penalization
-        , solver='saga'  # Only solver to support range of l1, l2 penalties
-        , random_state=random_seed
-
-        , C=args.reg_rate
-        , l1_ratio=args.l1_ratio
-    )
-
-    # Store the model cross validation scores
-    model_scores = cross_val_score(
-        estimator=model
-        , X=X_Train_trans
-        , y=Y_Train.values.ravel()
-        , cv=5
-        , scoring='roc_auc'
-    )
-
-    # Store the mean cross-validated score
-    run.log('mean_cv_score', model_scores.mean())
-
-    # Boolean check as whether to save new best model
-    if best_score == None or model_scores.mean() > best_score:
-        # Take the new best_score
-        best_score = model_scores.mean()
-
-        # Fit the model
-        model.fit(
-            X=X_Train_trans
-            , y=Y_Train.values.ravel()
-        )
-
-        # Store the model name for export
-        model_name = "model_version_" + str(i) + ".pkl"
-
-        # Store the model and complete the run
-        filename = "outputs/" + model_name
-        joblib.dump(
-            value=model
-            , filename=filename
-            )
-        run.upload_file(
-            name=model_name
-            , path_or_stream=filename
-            )
-
-    # Finish the run        
-    run.complete()
+x_train = train[:, 1:]
+y_train = train[:, 0]
 
 
+# Instantiate model with hyperparameters
+model = LogisticRegression(
+    penalty='elasticnet' # Allows full range of penalization
+    , solver='saga'  # Only solver to support range of l1, l2 penalties
+    , random_state=args.random_seed
 
-# load the training dataset
-data = run.input_datasets['training_data'].to_pandas_dataframe()
+    , C=args.reg_rate
+    , l1_ratio=args.l1_ratio
+)
 
-# Separate features and labels, and split for training/validatiom
-X = data[['feature1','feature2','feature3','feature4']].values
-y = data['label'].values
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.30)
+# Store the model cross validation scores
+model_scores = cross_val_score(
+    estimator=model
+    , X=x_train
+    , y=y_train
+    , cv=5
+    , scoring='roc_auc'
+)
 
-# Train a logistic regression model with the reg hyperparameter
-model = LogisticRegression(C=1/reg, solver="liblinear").fit(X_train, y_train)
+# Store the mean cross-validated score
+run.log('mean_cv_score', float(model_scores.mean()))
 
-# calculate and log accuracy
-y_hat = model.predict(X_test)
-acc = np.average(y_hat == y_test)
-run.log('Accuracy', np.float(acc))
+# Fit the model after cross_val_score
+model.fit(
+    X=x_train
+    , y=y_train
+)
 
-# Save the trained model
-os.makedirs('outputs', exist_ok=True)
-joblib.dump(value=model, filename='outputs/model.pkl')
+# Store the model and complete the run
+joblib.dump(
+    value=model
+    , filename="./outputs/model.pkl"
+)
 
+# Finish the run        
 run.complete()

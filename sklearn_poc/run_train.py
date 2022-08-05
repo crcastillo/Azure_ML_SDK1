@@ -5,17 +5,22 @@ from azureml.core import (
     , Dataset
     , Datastore
     , ScriptRunConfig
+    , Model
     )
-from azureml.core.compute import ComputeInstance
+from azureml.core.compute import ComputeTarget
 from azureml.train.hyperdrive import (
     HyperDriveConfig
     , PrimaryMetricGoal
-    , BayesianParameterSampling
+    , BayesianParameterSampling # Bayesian doesn't support loguniform
     , uniform
-    , loguniform
+    , choice
     )
 
 import numpy as np
+import os
+
+# Define variables
+random_seed = 123
 
 # Construct workspace
 ws = Workspace.from_config() 
@@ -26,8 +31,8 @@ exp = Experiment(workspace = ws, name = 'sklearn_hyperdrive_training')
 # Build environment
 env = Environment.from_conda_specification(name='test_env', file_path="conda_dependencies.yml")
 
-# Set the compute instance
-instance = ComputeInstance(workspace=ws, name='crcastillo841')
+# Set the compute target (cluster)
+cluster = ComputeTarget(workspace=ws, name='cpu-cluster')
 
 # Define search space and parameter search
 param_sampling = BayesianParameterSampling({
@@ -35,9 +40,8 @@ param_sampling = BayesianParameterSampling({
         min_value=0
         , max_value=1
         ),
-    "C": loguniform(
-        min_value=1e-4
-        , max_value=1e2
+    "C": choice(
+        [1e-4, 1e-3, 1e-2, 1e-1, 1, 1e1, 1e2]
         )
 })
 
@@ -52,31 +56,18 @@ Dataset.File.upload_directory(
     src_dir='./data/'
     , target=(default_datastore, 'Azure_ML_SDK1/sklearn_poc/data/')
     , overwrite=True
-    , pattern='*train.pkl'
+    , pattern='*train.txt'
 )
-
-'''
-LEFT OFF HERE
-'''
-
-# Define dataset
-train = Dataset.from_binary_files(default_datastore.path('./data/train.pkl'))
-
-# Define variables
-random_seed = 123
 
 # Structure the ScriptRunConfig
 run_config = ScriptRunConfig(
     source_directory='./train'
     , script='train.py'
     , arguments=[
-        # '--input_data', train.as_named_input('train_data')
-        # , 
         '--random_seed', random_seed
         ]
     , environment=env
-    , compute_target=instance
-    , 
+    , compute_target=cluster
 )
 
 # Assumes ws, script_config and param_sampling are already defined
@@ -86,10 +77,38 @@ hyperdrive = HyperDriveConfig(
     , policy=None
     , primary_metric_name='mean_cv_score'
     , primary_metric_goal=PrimaryMetricGoal.MAXIMIZE
-    , max_total_runs=6
+    , max_total_runs=40
     , max_concurrent_runs=4
     )
 
 # Submit run and wait_for_completion
 hyperdrive_run = exp.submit(config=hyperdrive)
 hyperdrive_run.wait_for_completion(show_output=True)
+
+# Print best_run
+best_run = hyperdrive_run.get_best_run_by_primary_metric()
+print(best_run)
+
+# Create a model folder in the current directory
+os.makedirs('./model/outputs', exist_ok=True)
+
+# Download the PreProcessing model from run history
+best_run.download_file(
+    name='outputs/model.pkl'
+    , output_file_path='./model/outputs/model.pkl'
+)
+
+# Register best model
+best_run.register_model(
+    model_name='sklearn_logistic'
+    , model_path='outputs/model.pkl' # run outputs path
+    , description='A LogisticRegression for 1987 NICP Survey'
+    , tags={
+        'data-format': 'CSV'
+        , 'dataset': '1987_NICP_Survey'
+        , 'type': 'classification'
+        , 'model_form': 'logistic regression'
+        }
+    , model_framework=Model.Framework.SCIKITLEARN
+    , model_framework_version='0.24.2'
+)
