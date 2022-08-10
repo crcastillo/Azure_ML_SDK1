@@ -1,4 +1,3 @@
-#%%
 from azureml.core import (
     Workspace
     , Environment
@@ -18,6 +17,7 @@ env = Environment.from_conda_specification(name='test_env', file_path="conda_dep
 # Register the environment
 env.register(workspace=ws)
 
+# Define the ACI configuration
 aci_config = AciWebservice.deploy_configuration(
     cpu_cores=1
     , memory_gb=2
@@ -27,14 +27,12 @@ aci_config = AciWebservice.deploy_configuration(
     , description='Classification of contraception use'
 )
 
-# Create the configuration
+# Create the inference configuration
 inference_config = InferenceConfig(
     entry_script='score.py'
     , source_directory='./model'
     , environment=env
 )
-
-#%%
 
 # Model deployment config
 service = Model.deploy(
@@ -54,8 +52,6 @@ service = Model.deploy(
     , deployment_config=aci_config
     , overwrite = True
     )
-
-#%%
 
 # Deploy
 service.wait_for_deployment(show_output=True)

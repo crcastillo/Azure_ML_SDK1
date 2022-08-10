@@ -3,7 +3,7 @@ from sklearn.model_selection import train_test_split
 import numpy as np
 
 import argparse
-import joblib
+import cloudpickle
 
 from common import preprocessing_pipeline
 
@@ -105,8 +105,10 @@ if __name__ == "__main__":
     )
 
     # Dump PreProcessing_Pipeline into ./outputs
-    joblib.dump(
-        value=PreProcessing_Pipeline
-        , filename='./outputs/PreProcessing_Pipeline.pkl'
-    )
+    cloudpickle.register_pickle_by_value(preprocessing_pipeline)
+    with open('./outputs/PreProcessing_Pipeline.cloudpkl', mode='wb') as file:
+        cloudpickle.dump(
+            obj=PreProcessing_Pipeline
+            , file=file
+        )
     

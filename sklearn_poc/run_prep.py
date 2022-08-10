@@ -74,8 +74,8 @@ os.makedirs('./prep/outputs', exist_ok=True)
 
 # Download the PreProcessing model from run history
 run.download_file(
-    name='outputs/PreProcessing_Pipeline.pkl'
-    , output_file_path='./prep/outputs/PreProcessing_Pipeline.pkl'
+    name='outputs/PreProcessing_Pipeline.cloudpkl'
+    , output_file_path='./prep/outputs/PreProcessing_Pipeline.cloudpkl'
 )
 
 # Download train, test to ./data
@@ -88,7 +88,7 @@ for i in ['train', 'test']:
 # Register the PreProcessing Pipeline as model
 run.register_model( 
     model_name='sklearn_preprocessing'
-    , model_path='outputs/PreProcessing_Pipeline.pkl' # run outputs path
+    , model_path='outputs/PreProcessing_Pipeline.cloudpkl' # run outputs path
     , description='A Pre-Processing Pipeline for sklearn models based on 1987 NICP Survey'
     , tags={
         'data-format': 'CSV'
