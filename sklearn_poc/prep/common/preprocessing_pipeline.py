@@ -413,9 +413,8 @@ def CreateProcessingPipeline(verbose = False):
             ('SimpleImputer', SimpleImputer(
                 strategy='median'
                 , verbose=1))
-            # No need for single numeric variable | commenting out FindCorrelation and VIFScreen
-            # , ('CorrelationCheck', FindCorrelation(threshold=0.95))            
-            # , ('Run VIF screen' ,VIFScreen(threshold = 10.0))
+            , ('CorrelationCheck', FindCorrelation(threshold=0.95))            
+            , ('Run VIF screen' ,VIFScreen(threshold = 10.0))
             , ('StandardScaler', StandardScaler())
         ]
         , verbose=verbose

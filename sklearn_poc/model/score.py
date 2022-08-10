@@ -24,15 +24,15 @@ def init():
 
 data_sample = PandasParameterType(
     pd.DataFrame(
-        {'WifesAge': pd.Series([0], dtype='int64')
-        , 'WifesEducation': pd.Series(['example_value'], dtype='object')
-        , 'HusbandsEducation': pd.Series(['example_value'], dtype='object')
-        , 'NumberOfChildren': pd.Series([0], dtype='int64')
-        , 'WifesReligion': pd.Series([0], dtype='int64')
-        , 'WifeWorking': pd.Series(['example_value'], dtype='object')
-        , 'HusbandOccupation': pd.Series(['example_value'], dtype='object')
-        , 'StandardOfLivingIndex': pd.Series(['example_value'], dtype='object')
-        , 'MediaExposure': pd.Series(['example_value'], dtype='object')
+        {'WifesAge': pd.Series([38], dtype='int64')
+        , 'WifesEducation': pd.Series(['2'], dtype='object')
+        , 'HusbandsEducation': pd.Series(['4'], dtype='object')
+        , 'NumberOfChildren': pd.Series([2], dtype='int64')
+        , 'WifesReligion': pd.Series(['1'], dtype='object')
+        , 'WifeWorking': pd.Series(['1'], dtype='object')
+        , 'HusbandOccupation': pd.Series(['1'], dtype='object')
+        , 'StandardOfLivingIndex': pd.Series(['3'], dtype='object')
+        , 'MediaExposure': pd.Series(['0'], dtype='object')
         }
     )
 )
@@ -53,7 +53,7 @@ def run(Inputs):
         # Run processed_data through model
         result = model.predict_proba(processed_data)
 
-        return {'data': result.to_list(), 'message': 'Successfully created predictions'}
+        return {'data': result.tolist(), 'message': 'Successfully created predictions'}
     except Exception as err:
         error = str(err)
         return {'data': error, 'message': 'Failed to create predictions'}

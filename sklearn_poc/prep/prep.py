@@ -67,7 +67,7 @@ if __name__ == "__main__":
         'WifesAge': 'Int64'
         , 'WifesEducation': object
         , 'HusbandsEducation': object
-        , 'NumberOfChildren': object
+        , 'NumberOfChildren': 'Int64'
         , 'WifesReligion': object
         , 'WifeWorking': object 
         , 'HusbandOccupation': object
