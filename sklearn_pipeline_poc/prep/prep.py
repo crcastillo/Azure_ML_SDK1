@@ -51,7 +51,7 @@ if __name__ == "__main__":
     Y_Test.replace(
         to_replace={
             ' <=50K':0 
-            , '>50K':1
+            , ' >50K':1
         }
         , inplace = True
     )
@@ -98,12 +98,12 @@ if __name__ == "__main__":
     np.savetxt(
         fname='./outputs/train.txt'
         , X=train
-        , fmt="%s"
+        , fmt="%f"
     )
     np.savetxt(
         fname='./outputs/test.txt'
         , X=test
-        , fmt="%s"
+        , fmt="%f"
     )
 
     # Dump PreProcessing_Pipeline into ./outputs
@@ -119,11 +119,19 @@ if __name__ == "__main__":
         os.makedirs(args.train_data, exist_ok=True)
         print("%s created" % args.train_data)
         path = args.train_data + "/train.txt"
-        train.tofile(path)
+        np.savetxt(
+            fname=path
+            , X=train
+            , fmt="%f"
+        )
 
     # Export test to Pipeline data
     if not (args.test_data is None):
         os.makedirs(args.test_data, exist_ok=True)
         print("%s created" % args.test_data)
         path = args.test_data + "/test.txt"
-        test.tofile(path)
+        np.savetxt(
+            fname=path
+            , X=test
+            , fmt="%f"
+        )

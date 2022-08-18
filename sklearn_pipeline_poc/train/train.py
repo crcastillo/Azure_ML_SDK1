@@ -1,14 +1,12 @@
-# TODO: Update for xgboost run
 from azureml.core import (
     Run
-    , Dataset
-    , Datastore
     )
 
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import cross_val_score, train_test_split
+import xgboost as xgb
+from sklearn.model_selection import cross_val_score
 from sklearn.metrics import roc_auc_score
 
+import pandas as pd
 import numpy as np
 import joblib
 import argparse
@@ -19,37 +17,29 @@ run = Run.get_context()
 
 # Instantiate ArgumentParser and create arguments
 parser = argparse.ArgumentParser()
-# parser.add_argument("--input_data", type=str)
-parser.add_argument('--C', type=float, dest='reg_rate', default=0.01)
-parser.add_argument('--l1_ratio', type=float, dest='l1_ratio', default=0)
 parser.add_argument("--random_seed", type=int)
+# parser.add_argument("--train_data", type=str)
+parser.add_argument('--n_estimators', type=int, dest='n_estimators', default=100)
+parser.add_argument('--learning_rate', type=float, dest='learning_rate', default=0.3)
+parser.add_argument('--max_depth', type=int, dest='max_depth', default=6)
+parser.add_argument('--colsample_bytree', type=float, dest='colsample_bytree', default=1.0)
+parser.add_argument('--gamma', type=float, dest='gamma', default=0)
+parser.add_argument('--reg_lambda', type=float, dest='reg_lambda', default=1.0)
+parser.add_argument('--reg_alpha', type=float, dest='reg_alpha', default=0.0)
+parser.add_argument('--subsample', type=float, dest='subsample', default=1.0)
+parser.add_argument('--max_bin', type=int, dest='max_bin', default=256)
 
 args = parser.parse_args()
 
 # Define workspace from run.experiment
 ws = run.experiment.workspace
 
-# Configure the default storage
-default_datastore = Datastore.get(
-    workspace=ws
-    , datastore_name='workspaceblobstore'
-)
+# Get the input dataset by name of PipelineData
+train_path = run.input_datasets['train_data']
 
-# Get the input dataset by ID
-dataset = Dataset.File.from_files(
-    path=(default_datastore, 'Azure_ML_SDK1/sklearn_poc/data/train.txt')
-)
-
-# Create folder to store input pkl
-data_folder = os.path.join(os.getcwd(), 'data')
-os.makedirs(data_folder, exist_ok=True)
-
-# Download the input pkl into folder
-dataset_dl = dataset.download(data_folder, overwrite=True)
-
-# Load to numpy array
+# Load train_data
 train = np.loadtxt(
-    fname=dataset_dl[0]
+    fname=os.path.join(train_path, 'train.txt')
     , dtype=float
 )
 
@@ -57,15 +47,24 @@ train = np.loadtxt(
 x_train = train[:, 1:]
 y_train = train[:, 0]
 
-
 # Instantiate model with hyperparameters
-model = LogisticRegression(
-    penalty='elasticnet' # Allows full range of penalization
-    , solver='saga'  # Only solver to support range of l1, l2 penalties
-    , random_state=args.random_seed
+model = xgb.XGBClassifier(
+    random_state=args.random_seed
+    , objective='binary:logistic' 
+    , verbosity=0
+    , n_jobs=1
+    , tree_method='hist'
+    , predictor='cpu_predictor'
 
-    , C=args.reg_rate
-    , l1_ratio=args.l1_ratio
+    , n_estimators=args.n_estimators
+    , learning_rate=args.learning_rate
+    , max_depth=args.max_depth
+    , colsample_bytree=args.colsample_bytree
+    , gamma=args.gamma
+    , reg_lambda=args.reg_lambda
+    , reg_alpha=args.reg_alpha
+    , subsample=args.subsample
+    , max_bin=args.max_bin
 )
 
 # Store the model cross validation scores
@@ -75,6 +74,11 @@ model_scores = cross_val_score(
     , y=y_train
     , cv=5
     , scoring='roc_auc'
+    , fit_params={
+        'early_stopping_rounds': 30
+        , 'eval_metric': 'auc'
+        , 'verbose': False
+    }
 )
 
 # Store the mean cross-validated score
@@ -91,6 +95,3 @@ joblib.dump(
     value=model
     , filename="./outputs/model.pkl"
 )
-
-# Finish the run        
-run.complete()
