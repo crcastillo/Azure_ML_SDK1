@@ -55,6 +55,7 @@ model = xgb.XGBClassifier(
     , n_jobs=1
     , tree_method='hist'
     , predictor='cpu_predictor'
+    , use_label_encoder=False
 
     , n_estimators=args.n_estimators
     , learning_rate=args.learning_rate
@@ -75,8 +76,10 @@ model_scores = cross_val_score(
     , cv=5
     , scoring='roc_auc'
     , fit_params={
-        'early_stopping_rounds': 30
-        , 'eval_metric': 'auc'
+        # can't use early_stopping_rounds without a specified validation set
+        # 'early_stopping_rounds': 50 
+        # , 
+        'eval_metric': 'auc'
         , 'verbose': False
     }
 )
