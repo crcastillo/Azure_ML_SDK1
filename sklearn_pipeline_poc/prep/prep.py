@@ -13,12 +13,13 @@ if __name__ == "__main__":
     run = Run.get_context()    
 
     # Instantiate ArgumentParser
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser('Prep')
     parser.add_argument("--random_seed", type=int)
     parser.add_argument("--test_proportion", type=float)
     parser.add_argument("--target", type=str)
     parser.add_argument("--train_data", dest="train_data", required=True)
     parser.add_argument("--test_data", dest="test_data", required=True)
+    parser.add_argument("--preprocess_data", dest="preprocess_data", required=True)
 
     args = parser.parse_args()
 
@@ -61,19 +62,19 @@ if __name__ == "__main__":
 
     # Create dictionary of how columns types shoudl be transformed
     To_Type_Dict = {
-        'age': 'Int64'
+        'age': 'int64'
         , 'workclass': object
-        , 'fnlwgt': 'Int64'
+        , 'fnlwgt': 'int64'
         , 'education': object
-        , 'education_num': 'Int64'
+        , 'education_num': 'int64'
         , 'marital_status': object
         , 'occupation': object
         , 'relationship': object
         , 'race': object
         , 'sex': object
-        , 'capital_gain': 'Int64'
-        , 'capital_loss': 'Int64'
-        , 'hours_per_week': 'Int64'
+        , 'capital_gain': 'int64'
+        , 'capital_loss': 'int64'
+        , 'hours_per_week': 'int64'
         , 'native_country': object
         # Comment out the Target
         # , 'income' object
@@ -114,7 +115,7 @@ if __name__ == "__main__":
             , file=file
         )
     
-    # Export train to Pipeline data
+    # Export train to PipelineData
     if not (args.train_data is None):
         os.makedirs(args.train_data, exist_ok=True)
         print("%s created" % args.train_data)
@@ -125,7 +126,7 @@ if __name__ == "__main__":
             , fmt="%f"
         )
 
-    # Export test to Pipeline data
+    # Export test to PipelineData
     if not (args.test_data is None):
         os.makedirs(args.test_data, exist_ok=True)
         print("%s created" % args.test_data)
@@ -135,3 +136,14 @@ if __name__ == "__main__":
             , X=test
             , fmt="%f"
         )
+
+    # Export PreProcessing_Pipeline to PipelineData
+    if not (args.preprocess_data is None):
+        os.makedirs(args.preprocess_data, exist_ok=True)
+        print("%s created" % args.preprocess_data)
+        path = args.preprocess_data + "/PreProcessing_Pipeline.cloudpkl"
+        with open(path, mode='wb') as file:
+            cloudpickle.dump(
+                obj=PreProcessing_Pipeline
+                , file=file
+            )
