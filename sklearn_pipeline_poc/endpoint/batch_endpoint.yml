@@ -1,0 +1,4 @@
+$schema: https://azuremlschemas.azureedge.net/latest/batchEndpoint.schema.json
+name: sklearn-pipeline-batch-nonmlflow
+description: test_sklearn_pipeline_batch
+auth_mode: aad_token

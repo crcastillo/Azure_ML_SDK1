@@ -1,0 +1,23 @@
+$schema: https://azuremlschemas.azureedge.net/latest/batchDeployment.schema.json
+name: batch-nonmlflow-test
+endpoint_name: sklearn-pipeline-batch-nonmlflow
+model: 
+  azureml:adult_pipeline_xgboost@latest
+code_configuration:
+  code: ../model/
+  scoring_script: score.py
+environment:
+  conda_file: ../conda_dependencies.yml
+  image: mcr.microsoft.com/azureml/minimal-ubuntu20.04-py38-cpu-inference:latest
+compute: azureml:cpu-cluster
+resources:
+  instance_count: 1
+max_concurrency_per_instance: 2
+mini_batch_size: 1
+output_action: append_row
+output_file_name: predictions.csv
+retry_settings:
+  max_retries: 3
+  timeout: 30
+error_threshold: -1
+logging_level: info
